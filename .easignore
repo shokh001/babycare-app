@@ -1,0 +1,12 @@
+# Windows foydalanuvchi papkasini butunlay ignore qilish
+C:/Users/user/
+C:/Users/user/**
+AppData/
+AppData/**
+**/AppData/**
+ElevatedDiagnostics/
+**/ElevatedDiagnostics/**
+# Vaqtinchalik va kesh fayllar
+*.tmp
+**/temp/**
+**/cache/**
