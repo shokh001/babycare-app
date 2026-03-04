@@ -1,13 +1,4 @@
 import { auth, db } from "@/services/firebase";
-// import {
-//   addDoc,
-//   collection,
-//   doc,
-//   onSnapshot,
-//   query,
-//   updateDoc,
-//   where
-// } from "firebase/firestore";
 import {
   addDoc,
   collection,
@@ -15,11 +6,12 @@ import {
   getDocs,
   onSnapshot,
   query,
+  Unsubscribe,
   updateDoc,
   where,
   writeBatch
 } from 'firebase/firestore';
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 
 export interface Baby {
@@ -47,41 +39,56 @@ interface BabyContextType {
   error: string | null;
 }
 
-export const BabyContext = createContext<BabyContextType | undefined>(
-  undefined,
-);
+export const BabyContext = createContext<BabyContextType | undefined>(undefined);
 
 export const BabyProvider = ({ children }: { children: React.ReactNode }) => {
   const [babies, setBabies] = useState<Baby[]>([]);
   const [currentBaby, setCurrentBaby] = useState<Baby | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Listener'ni saqlash uchun ref
+  const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
+  // Auth holatini kuzatish
   useEffect(() => {
-    // Auth holatini tekshirish
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      // Avvalgi listener'ni to'xtatish
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+
       if (user) {
+        // Foydalanuvchi tizimga kirgan – ma'lumotlarni yuklash
         subscribeToBabies(user.uid);
       } else {
+        // Foydalanuvchi tizimdan chiqqan – state'ni tozalash
         setBabies([]);
         setCurrentBaby(null);
         setLoading(false);
+        setError(null);
       }
     });
 
+    // Cleanup: auth listener va snapshot listener
     return () => {
       unsubscribeAuth();
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
     };
   }, []);
 
   const subscribeToBabies = (userId: string) => {
-
+    setLoading(true);
+    
     const q = query(collection(db, "babies"), where("userId", "==", userId));
 
-    const unsubscribe = onSnapshot(
+    // Listener'ni saqlash
+    unsubscribeRef.current = onSnapshot(
       q,
       (snapshot) => {
-
         const babyData = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
@@ -103,23 +110,23 @@ export const BabyProvider = ({ children }: { children: React.ReactNode }) => {
         setError(null);
       },
       (error) => {
-        console.error("❌ Error fetching babies:", error);
-        setError(error.message);
+        // Faqat foydalanuvchi hali tizimda bo'lsa xatolikni ko'rsatish
+        if (auth.currentUser) {
+          console.error("❌ Error fetching babies:", error);
+          setError(error.message);
+          Alert.alert(
+            "Xatolik",
+            "Ma'lumotlarni yuklashda xatolik: " + error.message,
+          );
+        }
         setLoading(false);
-        Alert.alert(
-          "Xatolik",
-          "Ma'lumotlarni yuklashda xatolik: " + error.message,
-        );
-      },
+      }
     );
-
-    return unsubscribe;
   };
 
   const addBaby = async (babyData: any): Promise<boolean> => {
     try {
       const user = auth.currentUser;
-
       if (!user) {
         console.error("❌ No authenticated user");
         Alert.alert("Xatolik", "Iltimos, avval tizimga kiring");
@@ -134,18 +141,10 @@ export const BabyProvider = ({ children }: { children: React.ReactNode }) => {
       };
 
       const babiesRef = collection(db, "babies");
-      const docRef = await addDoc(babiesRef, newBaby);
-
+      await addDoc(babiesRef, newBaby);
       return true;
     } catch (error: any) {
-      console.error("❌ Error adding baby:", {
-        name: error.name,
-        code: error.code,
-        message: error.message,
-        stack: error.stack,
-      });
-
-      // Maxsus xatolik xabarlari
+      console.error("❌ Error adding baby:", error);
       if (error.code === "permission-denied") {
         Alert.alert(
           "Xatolik",
@@ -156,7 +155,6 @@ export const BabyProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         Alert.alert("Xatolik", `Kod: ${error.code}\nXabar: ${error.message}`);
       }
-
       return false;
     }
   };
@@ -173,12 +171,9 @@ export const BabyProvider = ({ children }: { children: React.ReactNode }) => {
         ...data,
         updatedAt: new Date(),
       });
-
-      setError(null);
       return true;
     } catch (error: any) {
       console.error("❌ Error updating baby:", error);
-      setError(error.message);
       Alert.alert("Xatolik", "Ma'lumotlarni yangilashda muammo yuz berdi");
       return false;
     }

@@ -104,7 +104,7 @@ export default function TipsAdmin() {
             <View style={styles.confirmButtons}>
               <Button
                 title="Bekor qilish"
-                variant="outline"
+                variant="secondary"
                 onPress={() => {
                   setDeleteModalVisible(false);
                   setTipToDelete(null);

@@ -98,7 +98,7 @@ export default function GrowthScreen() {
         date,
         createdAt: new Date(),
       };
-      
+
       const docRef = await addDoc(collection(db, "growths"), data);
 
       Alert.alert("Muvaffaqiyatli", "Ma'lumot saqlandi");
@@ -138,7 +138,7 @@ export default function GrowthScreen() {
 
       <View style={styles.content}>
         <ThemedText style={styles.label}>Sana</ThemedText>
-        
+
         {Platform.OS === 'web' ? (
           renderWebDatePicker(date, setDate, "growth-date")
         ) : (
@@ -206,12 +206,12 @@ export default function GrowthScreen() {
         <View style={styles.buttons}>
           <Button
             title="Bekor qilish"
-            variant="outline"
             onPress={() => router.back()}
             style={styles.button}
           />
           <Button
             title="Saqlash"
+            variant="secondary"
             onPress={handleSave}
             loading={loading}
             style={styles.button}

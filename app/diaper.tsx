@@ -234,12 +234,12 @@ export default function DiaperScreen() {
         <View style={styles.buttons}>
           <Button
             title="Bekor qilish"
-            variant="outline"
             onPress={() => router.back()}
             style={styles.button}
-          />
+            />
           <Button
             title="Saqlash"
+            variant="secondary"
             onPress={handleSave}
             loading={loading}
             style={styles.button}

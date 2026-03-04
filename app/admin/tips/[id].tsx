@@ -159,12 +159,12 @@ export default function EditTip() {
         <View style={styles.buttons}>
           <Button
             title="Bekor qilish"
-            variant="outline"
             onPress={() => router.back()}
             style={styles.button}
-          />
+            />
           <Button
             title="Yangilash"
+            variant="secondary"
             onPress={handleUpdate}
             loading={loading}
             style={styles.button}

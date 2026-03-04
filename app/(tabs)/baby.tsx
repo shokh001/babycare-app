@@ -195,7 +195,7 @@ export default function BabyScreen() {
               <View style={styles.confirmButtons}>
                 <Button
                   title="Bekor qilish"
-                  variant="outline"
+                  variant="secondary"
                   onPress={() => {
                     setDeleteModalVisible(false);
                     setBabyToDelete(null);
@@ -375,7 +375,6 @@ export default function BabyScreen() {
               <View style={styles.modalButtons}>
                 <Button
                   title="Bekor qilish"
-                  variant="outline"
                   onPress={() => {
                     setModalVisible(false);
                     resetForm();
@@ -383,6 +382,7 @@ export default function BabyScreen() {
                   style={styles.modalButton}
                 />
                 <Button
+                  variant="secondary"
                   title="Saqlash"
                   onPress={handleSaveBaby}
                   loading={saving}

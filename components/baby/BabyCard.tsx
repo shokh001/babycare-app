@@ -75,10 +75,8 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 10,
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderWidth: 2,
+    borderColor: Colors.light.border,
   },
   selectedCard: {
     borderWidth: 2,

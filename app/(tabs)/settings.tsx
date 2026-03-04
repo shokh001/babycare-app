@@ -172,10 +172,10 @@ export default function SettingsScreen() {
             <View style={styles.confirmButtons}>
               <Button
                 title="Bekor qilish"
-                variant="outline"
+                variant="secondary"
                 onPress={() => setLogoutModalVisible(false)}
                 style={{ flex: 1, marginRight: 10 }}
-              />
+                />
               <Button
                 title="Chiqish"
                 onPress={executeLogout}

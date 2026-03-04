@@ -118,11 +118,11 @@ export default function CreateTip() {
         <View style={styles.buttons}>
           <Button
             title="Bekor qilish"
-            variant="outline"
             onPress={() => router.back()}
             style={styles.button}
           />
           <Button
+            variant="secondary"
             title="Saqlash"
             onPress={handleSave}
             loading={loading}
