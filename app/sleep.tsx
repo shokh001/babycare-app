@@ -62,7 +62,6 @@ export default function SleepScreen() {
         createdAt: new Date(),
       };
       
-      
       const docRef = await addDoc(collection(db, "sleeps"), sleepData);
       
       Alert.alert("Muvaffaqiyatli", "Uyqu ma'lumoti saqlandi");
@@ -82,52 +81,98 @@ export default function SleepScreen() {
     }
   };
 
-  // Web platform uchun vaqt formatlash
-  const formatDateTimeForWeb = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+  // Web platform uchun vaqt formatlash (faqat vaqt uchun)
+  const formatTimeForWeb = (date: Date) => {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${hours}:${minutes}`;
   };
 
-  // Web platform uchun datetime picker (native dizaynga o'xshatilgan)
-  const renderWebDateTimePicker = (
+  // Web platform uchun vaqt picker (growth dagi kabi)
+  const renderWebTimePicker = (
     value: Date,
     onChange: (date: Date) => void,
-    label: string
-  ) => (
-    <TouchableOpacity
-      style={styles.timePicker}
-      onPress={() => {
-        // Web'da inputga fokus berish
-        const input = document.getElementById(label) as HTMLInputElement;
-        if (input) input.showPicker();
-      }}
-    >
-      <ThemedText>{value.toLocaleString("uz-UZ")}</ThemedText>
-      <Ionicons name="time-outline" size={20} color="#FF6B6B" />
-      <input
-        id={label}
-        type="datetime-local"
-        value={formatDateTimeForWeb(value)}
-        onChange={(e) => {
-          const newDate = new Date(e.target.value);
-          onChange(newDate);
+    id: string
+  ) => {
+    return (
+      <TouchableOpacity
+        style={styles.timePicker}
+        onPress={() => {
+          const input = document.getElementById(id) as HTMLInputElement;
+          if (input) input.showPicker();
         }}
-        style={{
-          position: 'absolute',
-          opacity: 0,
-          width: '100%',
-          height: '100%',
-          top: 0,
-          left: 0,
-          cursor: 'pointer',
+      >
+        <ThemedText>{value.toLocaleTimeString("uz-UZ")}</ThemedText>
+        <Ionicons name="time-outline" size={20} color="#FF6B6B" />
+        <input
+          id={id}
+          type="time"
+          value={formatTimeForWeb(value)}
+          onChange={(e) => {
+            const [hours, minutes] = e.target.value.split(':');
+            const newDate = new Date(value);
+            newDate.setHours(parseInt(hours, 10));
+            newDate.setMinutes(parseInt(minutes, 10));
+            onChange(newDate);
+          }}
+          style={{
+            position: 'absolute',
+            opacity: 0,
+            width: '100%',
+            height: '100%',
+            top: 0,
+            left: 0,
+            cursor: 'pointer',
+          }}
+        />
+      </TouchableOpacity>
+    );
+  };
+
+  // Web platform uchun sana picker (growth dagi kabi)
+  const renderWebDatePicker = (
+    value: Date,
+    onChange: (date: Date) => void,
+    id: string
+  ) => {
+    const formatDateForWeb = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    return (
+      <TouchableOpacity
+        style={styles.timePicker}
+        onPress={() => {
+          const input = document.getElementById(id) as HTMLInputElement;
+          if (input) input.showPicker();
         }}
-      />
-    </TouchableOpacity>
-  );
+      >
+        <ThemedText>{value.toLocaleDateString("uz-UZ")}</ThemedText>
+        <Ionicons name="calendar-outline" size={20} color="#FF6B6B" />
+        <input
+          id={id}
+          type="date"
+          value={formatDateForWeb(value)}
+          onChange={(e) => {
+            const newDate = new Date(e.target.value);
+            onChange(newDate);
+          }}
+          style={{
+            position: 'absolute',
+            opacity: 0,
+            width: '100%',
+            height: '100%',
+            top: 0,
+            left: 0,
+            cursor: 'pointer',
+          }}
+        />
+      </TouchableOpacity>
+    );
+  };
 
   if (!currentBaby) {
     return (
@@ -228,7 +273,21 @@ export default function SleepScreen() {
         {/* Boshlanish vaqti */}
         <ThemedText style={styles.label}>Boshlanish vaqti</ThemedText>
         {Platform.OS === 'web' ? (
-          renderWebDateTimePicker(startTime, setStartTime, "start-time")
+          <>
+            <ThemedText style={styles.subLabel}>Sana</ThemedText>
+            {renderWebDatePicker(startTime, (date) => {
+              const newDate = new Date(startTime);
+              newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+              setStartTime(newDate);
+            }, "start-date")}
+            
+            <ThemedText style={styles.subLabel}>Vaqt</ThemedText>
+            {renderWebTimePicker(startTime, (time) => {
+              const newDate = new Date(startTime);
+              newDate.setHours(time.getHours(), time.getMinutes());
+              setStartTime(newDate);
+            }, "start-time")}
+          </>
         ) : (
           <TouchableOpacity
             style={styles.timePicker}
@@ -254,7 +313,21 @@ export default function SleepScreen() {
         {/* Tugash vaqti */}
         <ThemedText style={styles.label}>Tugash vaqti</ThemedText>
         {Platform.OS === 'web' ? (
-          renderWebDateTimePicker(endTime, setEndTime, "end-time")
+          <>
+            <ThemedText style={styles.subLabel}>Sana</ThemedText>
+            {renderWebDatePicker(endTime, (date) => {
+              const newDate = new Date(endTime);
+              newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+              setEndTime(newDate);
+            }, "end-date")}
+            
+            <ThemedText style={styles.subLabel}>Vaqt</ThemedText>
+            {renderWebTimePicker(endTime, (time) => {
+              const newDate = new Date(endTime);
+              newDate.setHours(time.getHours(), time.getMinutes());
+              setEndTime(newDate);
+            }, "end-time")}
+          </>
         ) : (
           <TouchableOpacity
             style={styles.timePicker}
@@ -354,6 +427,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 10,
     color: "#333",
+  },
+  subLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 5,
+    marginTop: 5,
+    color: "#666",
   },
   qualitySelector: {
     flexDirection: "row",

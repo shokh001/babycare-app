@@ -1,10 +1,8 @@
 import Colors from "@/constants/Colors";
 import { Baby } from "@/context/BabyContext";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
-  ActivityIndicator,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -20,35 +18,10 @@ interface Props {
 }
 
 export function BabyCard({ baby, selected, onPress, onEdit, onDelete }: Props) {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
-  const [imageUri, setImageUri] = useState<string | null>(baby.photo || null);
-
-  useEffect(() => {
-    // Baby o'zgarganda rasmni qayta yuklash
-    setImageUri(baby.photo || null);
-    setImageError(false);
-  }, [baby.photo]);
-
   const ageInMonths = Math.floor(
     (Date.now() - new Date(baby.birthDate).getTime()) /
     (1000 * 60 * 60 * 24 * 30),
   );
-
-  const handleImageError = () => {
-    setImageError(true);
-    setImageLoading(false);
-  };
-
-  const handleImageLoad = () => {
-    setImageLoading(false);
-  };
-
-  const isValidImageUri = imageUri &&
-    (imageUri.startsWith('http') ||
-      imageUri.startsWith('file://') ||
-      imageUri.startsWith('data:image') ||
-      imageUri.startsWith('blob:')); // ✅ web uchun blob URL
 
   return (
     <TouchableOpacity
@@ -57,42 +30,17 @@ export function BabyCard({ baby, selected, onPress, onEdit, onDelete }: Props) {
       activeOpacity={0.7}
     >
       <View style={styles.content}>
-        {/* Rasm qismi */}
-        <View style={styles.imageContainer}>
-          {isValidImageUri && !imageError ? (
-            <>
-              {imageLoading && (
-                <View style={[styles.photoPlaceholder, styles.loadingContainer]}>
-                  <ActivityIndicator size="small" color="#FF6B6B" />
-                </View>
-              )}
-              <Image
-                source={{ uri: imageUri }}
-                style={[
-                  styles.photo,
-                  imageLoading && styles.imageLoading,
-                ]}
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-                resizeMode="cover"
-              />
-            </>
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Ionicons
-                name={baby.gender === "male" ? "male" : "female"}
-                size={30}
-                color={
-                  baby.gender === "male"
-                    ? Colors.light.secondary
-                    : Colors.light.primary
-                }
-              />
-              {imageError && (
-                <Text style={styles.errorText}>!</Text>
-              )}
-            </View>
-          )}
+        {/* Rasm o'rniga ikonka */}
+        <View style={styles.iconContainer}>
+          <Ionicons
+            name={baby.gender === "male" ? "male" : "female"}
+            size={40}
+            color={
+              baby.gender === "male"
+                ? Colors.light.secondary
+                : Colors.light.primary
+            }
+          />
         </View>
 
         {/* Ma'lumot qismi */}
@@ -163,48 +111,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  imageContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    overflow: "hidden",
-    position: "relative",
-  },
-  photo: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  imageLoading: {
-    opacity: 0.5,
-  },
-  photoPlaceholder: {
+  iconContainer: {
     width: 60,
     height: 60,
     borderRadius: 30,
     backgroundColor: "#f5f5f5",
     justifyContent: "center",
     alignItems: "center",
-    position: "relative",
-  },
-  loadingContainer: {
-    position: "absolute",
-    zIndex: 1,
-    backgroundColor: "rgba(255,255,255,0.8)",
-  },
-  errorText: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: "#FF4444",
-    color: "#fff",
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    textAlign: "center",
-    fontSize: 12,
-    lineHeight: 16,
-    overflow: "hidden",
   },
   info: {
     flex: 1,

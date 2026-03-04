@@ -34,12 +34,12 @@ export default function TipsScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    
+
     const tipsQuery = query(collection(db, "tips"));
-    
+
     // Real-time listener
     const unsubscribe = onSnapshot(tipsQuery, (snapshot) => {
-      
+
       if (snapshot.empty) {
         setTips([]);
       } else {
@@ -47,7 +47,7 @@ export default function TipsScreen() {
           id: doc.id,
           ...doc.data(),
         })) as Tip[];
-        
+
         setTips(tipsData);
       }
       setLoading(false);
@@ -73,31 +73,21 @@ export default function TipsScreen() {
   const getFilteredTips = () => {
     let filtered = tips;
 
-    // Kategoriya bo'yicha filter
+    // Kategoriya bo'yicha filter (agar "all" bo'lmasa)
     if (selectedCategory !== "all") {
       filtered = filtered.filter((tip) => tip.category === selectedCategory);
     }
 
-    // Yosh bo'yicha filter (agar currentBaby mavjud bo'lsa)
-    if (currentBaby && currentBaby.birthDate) {
-      const babyAge = Math.floor(
-        (Date.now() - new Date(currentBaby.birthDate).getTime()) /
-        (1000 * 60 * 60 * 24 * 30),
-      );
-
-      filtered = filtered.filter(
-        (tip) => tip.ageFrom <= babyAge && tip.ageTo >= babyAge,
-      );
-    } else {
-    }
+    // ✅ YOSH FILTRI BUTUNLAY O'CHIRILDI
+    // Barcha maslahatlar yoshga qaramasdan ko'rinadi
 
     return filtered;
   };
 
   const getAgeRange = (tip: Tip | null) => {
     if (!tip) return "";
-    if (tip.ageTo >= 120) return `${tip.ageFrom}+ oylik`;
-    return `${tip.ageFrom}-${tip.ageTo} oylik`;
+    if (tip.ageTo >= 120) return `${tip.ageFrom}+ yosh`;
+    return `${tip.ageFrom}-${tip.ageTo} yosh`;
   };
 
   const getCategoryIcon = (category: string) => {

@@ -53,6 +53,9 @@ export function Button({
     return "transparent";
   };
 
+  // Outline tugmada border balandlikka ta'sir qiladi, shuning uchun padding ni kamaytiramiz
+  const paddingVertical = variant === "outline" ? 12 : 14;
+
   return (
     <TouchableOpacity
       style={[
@@ -62,6 +65,7 @@ export function Button({
           borderColor: getBorderColor(),
           borderWidth: variant === "outline" ? 2 : 0,
           opacity: disabled ? 0.5 : 1,
+          paddingVertical,
         },
         style,
       ]}
@@ -80,7 +84,6 @@ export function Button({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 10,
     alignItems: "center",
