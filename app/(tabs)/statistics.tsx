@@ -254,11 +254,11 @@ export default function StatisticsScreen() {
               color: (opacity = 1) => `rgba(255, 107, 107, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
               style: { borderRadius: 16 },
-              propsForLabels: { fontSize: 10 },
-              propsForVerticalLabels: { fontSize: 10 },
-              barPercentage: 0.7,
-              fillShadowGradient: "#FF6B6B",
-              fillShadowGradientOpacity: 1,
+              // propsForLabels: { fontSize: 10 },
+              // propsForVerticalLabels: { fontSize: 10 },
+              // barPercentage: 0.7,
+              // fillShadowGradient: "#FF6B6B",
+              // fillShadowGradientOpacity: 1,
             }}
             style={styles.chart}
           />

@@ -4,12 +4,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/hooks/useAuth";
 import { useBaby } from "@/hooks/useBaby";
-import { storage } from '@/services/firebase';
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -39,7 +36,6 @@ export default function BabyScreen() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [notes, setNotes] = useState("");
-  const [photo, setPhoto] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -64,42 +60,6 @@ export default function BabyScreen() {
     }
   }, [user, isMounted]);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Ruxsat kerak",
-        "Rasm tanlash uchun galereyaga ruxsat berishingiz kerak",
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
-
-    if (!result.canceled) {
-      setPhoto(result.assets[0].uri);
-    }
-  };
-
-  const uploadImageAsync = async (uri: string, babyId: string): Promise<string | null> => {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const imageRef = ref(storage, `babies/${babyId}/${Date.now()}.jpg`);
-      const result = await uploadBytes(imageRef, blob);
-      const downloadUrl = await getDownloadURL(imageRef);
-      return downloadUrl;
-    } catch (error) {
-      Alert.alert("Xatolik", "Rasm yuklashda muammo yuz berdi");
-      return null;
-    }
-  };
-
   const resetForm = () => {
     setName("");
     setBirthDate(new Date());
@@ -107,7 +67,6 @@ export default function BabyScreen() {
     setWeight("");
     setHeight("");
     setNotes("");
-    setPhoto(null);
     setEditingBaby(null);
   };
 
@@ -119,7 +78,6 @@ export default function BabyScreen() {
     setWeight(baby.weight?.toString() || "");
     setHeight(baby.height?.toString() || "");
     setNotes(baby.notes || "");
-    setPhoto(baby.photo || null);
     setModalVisible(true);
   };
 
@@ -131,21 +89,6 @@ export default function BabyScreen() {
 
     setSaving(true);
     try {
-      let photoUrl = photo;
-
-      // Agar yangi rasm tanlangan bo'lsa (va u http yoki blob bilan boshlanmasa) – yuklash kerak
-      if (photo && !photo.startsWith('http')) {
-        // Agar editingBaby bo‘lsa, uning ID sini ishlatamiz, aks holda vaqtinchalik ID
-        const tempId = editingBaby ? editingBaby.id : 'temp-' + Date.now();
-        const uploadedUrl = await uploadImageAsync(photo, tempId);
-        if (uploadedUrl) {
-          photoUrl = uploadedUrl;
-        } else {
-          // Yuklashda xatolik – rumsiz davom etish yoki xatolik berish
-          Alert.alert("Ogohlantirish", "Rasm yuklanmadi, ma'lumotlar saqlanadi");
-        }
-      }
-
       const babyData = {
         name: name.trim(),
         birthDate,
@@ -153,7 +96,6 @@ export default function BabyScreen() {
         weight: weight ? parseFloat(weight) : null,
         height: height ? parseFloat(height) : null,
         notes: notes.trim(),
-        photo: photoUrl, // Firebase Storage URL yoki null
       };
 
       let success = false;
@@ -190,7 +132,6 @@ export default function BabyScreen() {
     setDeleteModalVisible(true);
   };
 
-  // Alohida async funksiya
   const executeDelete = async () => {
     if (!babyToDelete) return;
 
@@ -236,6 +177,7 @@ export default function BabyScreen() {
             {babies.length} ta farzand ro'yxatga olingan
           </ThemedText>
         </View>
+
         <Modal
           animationType="fade"
           transparent={true}
@@ -270,6 +212,7 @@ export default function BabyScreen() {
             </View>
           </View>
         </Modal>
+
         <View style={styles.babiesList}>
           {babies.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -330,24 +273,6 @@ export default function BabyScreen() {
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <TouchableOpacity style={styles.photoPicker} onPress={pickImage}>
-                {photo ? (
-                  <View style={styles.photoPreview}>
-                    <Ionicons name="image-outline" size={40} color="#FF6B6B" />
-                    <ThemedText style={styles.photoText}>
-                      Rasm tanlangan
-                    </ThemedText>
-                  </View>
-                ) : (
-                  <View style={styles.photoPlaceholder}>
-                    <Ionicons name="camera-outline" size={40} color="#999" />
-                    <ThemedText style={styles.photoText}>
-                      Rasm qo'shish
-                    </ThemedText>
-                  </View>
-                )}
-              </TouchableOpacity>
-
               <Input
                 label="Farzandingiz ismi *"
                 value={name}
@@ -547,33 +472,6 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     padding: 20,
-  },
-  photoPicker: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  photoPreview: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  photoPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#ddd",
-    borderStyle: "dashed",
-  },
-  photoText: {
-    marginTop: 5,
-    color: "#999",
   },
   label: {
     fontSize: 14,

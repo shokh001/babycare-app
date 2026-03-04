@@ -2,12 +2,7 @@ import Colors from "@/constants/Colors";
 import { Baby } from "@/context/BabyContext";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Props {
   baby: Baby;
@@ -30,20 +25,14 @@ export function BabyCard({ baby, selected, onPress, onEdit, onDelete }: Props) {
       activeOpacity={0.7}
     >
       <View style={styles.content}>
-        {/* Rasm o'rniga ikonka */}
         <View style={styles.iconContainer}>
           <Ionicons
             name={baby.gender === "male" ? "male" : "female"}
             size={40}
-            color={
-              baby.gender === "male"
-                ? Colors.light.secondary
-                : Colors.light.primary
-            }
+            color={baby.gender === "male" ? Colors.light.secondary : Colors.light.primary}
           />
         </View>
 
-        {/* Ma'lumot qismi */}
         <View style={styles.info}>
           <Text style={styles.name}>{baby.name}</Text>
           <Text style={styles.age}>{ageInMonths} oylik</Text>
@@ -57,11 +46,7 @@ export function BabyCard({ baby, selected, onPress, onEdit, onDelete }: Props) {
         </View>
 
         {selected && (
-          <Ionicons
-            name="checkmark-circle"
-            size={24}
-            color={Colors.light.success}
-          />
+          <Ionicons name="checkmark-circle" size={24} color={Colors.light.success} />
         )}
       </View>
 
@@ -69,20 +54,12 @@ export function BabyCard({ baby, selected, onPress, onEdit, onDelete }: Props) {
         <View style={styles.actions}>
           {onEdit && (
             <TouchableOpacity onPress={onEdit} style={styles.actionButton}>
-              <Ionicons
-                name="pencil-outline"
-                size={20}
-                color={Colors.light.primary}
-              />
+              <Ionicons name="pencil-outline" size={20} color={Colors.light.primary} />
             </TouchableOpacity>
           )}
           {onDelete && (
             <TouchableOpacity onPress={onDelete} style={styles.actionButton}>
-              <Ionicons
-                name="trash-outline"
-                size={20}
-                color={Colors.light.danger}
-              />
+              <Ionicons name="trash-outline" size={20} color={Colors.light.danger} />
             </TouchableOpacity>
           )}
         </View>
