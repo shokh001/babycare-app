@@ -23,8 +23,13 @@ export default function SleepScreen() {
   const [endTime, setEndTime] = useState(new Date());
   const [quality, setQuality] = useState<"good" | "normal" | "bad">("normal");
   const [notes, setNotes] = useState("");
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
+  
+  // Mobile uchun alohida state'lar (sana va vaqt)
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  
   const [loading, setLoading] = useState(false);
 
   const calculateDuration = () => {
@@ -34,14 +39,12 @@ export default function SleepScreen() {
   };
 
   const handleSave = async () => {
-    
     if (!currentBaby) {
       Alert.alert("Xatolik", "Avval farzandingizni tanlang");
       return;
     }
 
     const duration = calculateDuration();
-    
     if (duration <= 0) {
       Alert.alert(
         "Xatolik",
@@ -62,11 +65,9 @@ export default function SleepScreen() {
         createdAt: new Date(),
       };
       
-      const docRef = await addDoc(collection(db, "sleeps"), sleepData);
-      
+      await addDoc(collection(db, "sleeps"), sleepData);
       Alert.alert("Muvaffaqiyatli", "Uyqu ma'lumoti saqlandi");
       router.back();
-      
     } catch (error: any) {
       console.error("❌ Error saving sleep:", error);
       let errorMessage = error.message;
@@ -88,7 +89,15 @@ export default function SleepScreen() {
     return `${hours}:${minutes}`;
   };
 
-  // Web platform uchun vaqt picker (growth dagi kabi)
+  // Web platform uchun sana formatlash
+  const formatDateForWeb = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Web platform uchun vaqt picker
   const renderWebTimePicker = (
     value: Date,
     onChange: (date: Date) => void,
@@ -129,19 +138,12 @@ export default function SleepScreen() {
     );
   };
 
-  // Web platform uchun sana picker (growth dagi kabi)
+  // Web platform uchun sana picker
   const renderWebDatePicker = (
     value: Date,
     onChange: (date: Date) => void,
     id: string
   ) => {
-    const formatDateForWeb = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
     return (
       <TouchableOpacity
         style={styles.timePicker}
@@ -289,25 +291,57 @@ export default function SleepScreen() {
             }, "start-time")}
           </>
         ) : (
-          <TouchableOpacity
-            style={styles.timePicker}
-            onPress={() => setShowStartPicker(true)}
-          >
-            <ThemedText>{startTime.toLocaleString("uz-UZ")}</ThemedText>
-            <Ionicons name="time-outline" size={20} color="#FF6B6B" />
-          </TouchableOpacity>
-        )}
+          <>
+            {/* Mobile uchun sana tanlash */}
+            <TouchableOpacity
+              style={styles.timePicker}
+              onPress={() => setShowStartDatePicker(true)}
+            >
+              <ThemedText>{startTime.toLocaleDateString("uz-UZ")}</ThemedText>
+              <Ionicons name="calendar-outline" size={20} color="#FF6B6B" />
+            </TouchableOpacity>
+            {showStartDatePicker && (
+              <DateTimePicker
+                value={startTime}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowStartDatePicker(false);
+                  if (selectedDate) {
+                    const newDate = new Date(startTime);
+                    newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                    setStartTime(newDate);
+                  }
+                }}
+                maximumDate={new Date()}
+              />
+            )}
 
-        {showStartPicker && Platform.OS !== 'web' && (
-          <DateTimePicker
-            value={startTime}
-            mode="datetime"
-            display="default"
-            onChange={(event, selectedTime) => {
-              setShowStartPicker(false);
-              if (selectedTime) setStartTime(selectedTime);
-            }}
-          />
+            {/* Mobile uchun vaqt tanlash */}
+            <TouchableOpacity
+              style={styles.timePicker}
+              onPress={() => setShowStartTimePicker(true)}
+            >
+              <ThemedText>{startTime.toLocaleTimeString("uz-UZ")}</ThemedText>
+              <Ionicons name="time-outline" size={20} color="#FF6B6B" />
+            </TouchableOpacity>
+            {showStartTimePicker && (
+              <DateTimePicker
+                value={startTime}
+                mode="time"
+                display="default"
+                is24Hour={true}
+                onChange={(event, selectedTime) => {
+                  setShowStartTimePicker(false);
+                  if (selectedTime) {
+                    const newDate = new Date(startTime);
+                    newDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+                    setStartTime(newDate);
+                  }
+                }}
+              />
+            )}
+          </>
         )}
 
         {/* Tugash vaqti */}
@@ -329,25 +363,57 @@ export default function SleepScreen() {
             }, "end-time")}
           </>
         ) : (
-          <TouchableOpacity
-            style={styles.timePicker}
-            onPress={() => setShowEndPicker(true)}
-          >
-            <ThemedText>{endTime.toLocaleString("uz-UZ")}</ThemedText>
-            <Ionicons name="time-outline" size={20} color="#FF6B6B" />
-          </TouchableOpacity>
-        )}
+          <>
+            {/* Mobile uchun sana tanlash */}
+            <TouchableOpacity
+              style={styles.timePicker}
+              onPress={() => setShowEndDatePicker(true)}
+            >
+              <ThemedText>{endTime.toLocaleDateString("uz-UZ")}</ThemedText>
+              <Ionicons name="calendar-outline" size={20} color="#FF6B6B" />
+            </TouchableOpacity>
+            {showEndDatePicker && (
+              <DateTimePicker
+                value={endTime}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowEndDatePicker(false);
+                  if (selectedDate) {
+                    const newDate = new Date(endTime);
+                    newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                    setEndTime(newDate);
+                  }
+                }}
+                maximumDate={new Date()}
+              />
+            )}
 
-        {showEndPicker && Platform.OS !== 'web' && (
-          <DateTimePicker
-            value={endTime}
-            mode="datetime"
-            display="default"
-            onChange={(event, selectedTime) => {
-              setShowEndPicker(false);
-              if (selectedTime) setEndTime(selectedTime);
-            }}
-          />
+            {/* Mobile uchun vaqt tanlash */}
+            <TouchableOpacity
+              style={styles.timePicker}
+              onPress={() => setShowEndTimePicker(true)}
+            >
+              <ThemedText>{endTime.toLocaleTimeString("uz-UZ")}</ThemedText>
+              <Ionicons name="time-outline" size={20} color="#FF6B6B" />
+            </TouchableOpacity>
+            {showEndTimePicker && (
+              <DateTimePicker
+                value={endTime}
+                mode="time"
+                display="default"
+                is24Hour={true}
+                onChange={(event, selectedTime) => {
+                  setShowEndTimePicker(false);
+                  if (selectedTime) {
+                    const newDate = new Date(endTime);
+                    newDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+                    setEndTime(newDate);
+                  }
+                }}
+              />
+            )}
+          </>
         )}
 
         {/* Davomiylik */}
@@ -375,7 +441,7 @@ export default function SleepScreen() {
             title="Bekor qilish"
             onPress={() => router.back()}
             style={styles.button}
-            />
+          />
           <Button
             title="Saqlash"
             variant="secondary"
